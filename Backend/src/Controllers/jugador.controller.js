@@ -14,7 +14,7 @@ async function crear(req, res) {
         const jugador = await jugadorService.crear(nombre);
 
         res.status(201).json(jugador);
-        console.log(`   -> Jugador creado: ${nombre} con id ${jugador}`);
+        console.log(`   -> [jugador.controller.js] Jugador creado: ${nombre} con id: ${jugador.id}`);
 
     }catch(error){
         //se envia el error del status o 500, además se envia el mensaje de error personalizado
@@ -35,7 +35,7 @@ async function obtener(_, res){
         const jugadores = await jugadorService.obtener();
 
         res.status(200).json(jugadores);
-        console.log(`   -> Jugadores obtenidos: ${jugadores.length}`);
+        console.log(`   -> [jugador.controller.js] Jugadores obtenidos: ${jugadores.map(j => j.nombre).join(", ")}`);
 
     }catch(error){
         res.status(error.status || 500).json({error: error.message});
@@ -57,11 +57,11 @@ async function eliminar(req, res) {
         
         if(!eliminado){
             res.status(404).json({error: "Jugador no encontrado"});
-            console.log(`   -> Jugador no encontrado con id: ${id}`);
+            console.log(`   -> [jugador.controller.js] Se intentó eliminar jugador con id: ${id}, no existe un jugador con ese id`);
             return;
         }
         res.status(200).json({message: "Jugador eliminado correctamente"});
-        console.log(`   -> Jugador eliminado con id: ${id}`);
+        console.log(`   -> [jugador.controller.js] Jugador eliminado con id: ${id}`);
 
     }catch(error){
         res.status(error.status || 500).json({error: error.message});
@@ -69,4 +69,34 @@ async function eliminar(req, res) {
     }
 }
 
-module.exports = { obtener, crear, eliminar };
+/**
+ * Funcuon que actualiza el nombre de un jugador por su id
+ * @param {*} req los parámetros de la url con el id del jugador a actualizar y el nuevo nombre en el body
+ * @param {*} res si se actualizó correctamente el jugador o el error que se haya producido al intentar actualizar el jugador
+ */
+async function actualizar(req, res) {
+    try{
+
+        const { id } = req.params;//se pasa porque es de la url
+        const { nombre } = req.body;
+
+        //se llama a la función de servicio para actualizar el jugador
+        const { jugadorActualizado, nombreAnterior } = await jugadorService.actualizar(id, nombre);
+
+        if(jugadorActualizado === 0){
+            res.status(404).json({error: "Jugador no encontrado"});
+            console.log(`   -> [jugador.controller.js] Jugador no encontrado con id: ${id}`);
+            return;
+        }
+
+        res.status(200).json({id: jugadorActualizado.id, nombre: jugadorActualizado.nombre});
+        console.log(`   -> [jugador.controller.js] Jugador con id: ${id} ha cambiado su nombre: "${nombreAnterior}" -> "${jugadorActualizado.nombre}"`);
+
+    }catch(error){
+        res.status(error.status || 500).json({error: error.message});
+        //console.log(error.stack);
+        console.error(`   -> ${error.message}`);
+    }
+}
+
+module.exports = { obtener, crear, eliminar, actualizar };

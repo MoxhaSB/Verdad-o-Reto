@@ -3,3 +3,7 @@
 
 #dependencias de node
 /node_modules
+
+#base de datos
+/Backend/src/databases/database.sqlite
+/Backend/src/databases/*.sqlite
